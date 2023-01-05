@@ -1,9 +1,11 @@
 const express = require('express');
 const app = express()
 const port = 3000
+var current_duty = 0;
+app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('2000000000');
+  res.send("this is server root bitch")
 });
 app.get('/analytics', (req, res)=>{
      res.json({
@@ -13,10 +15,20 @@ app.get('/analytics', (req, res)=>{
   });
     
 });
-// app.post("/duty_cycle", function(req, res) { 
-//   var num1 = Number(req.body.duty); 
-//   res.send("duty cycle changed successfully"); 
-// }); 
+
+
+
+app.get('/get_duty', (req, res)=>{
+  res.send(current_duty.toString());
+ 
+});
+
+app.post('/update_duty',function (req, res){
+  current_duty = req.body.duty;
+  console.log(current_duty);
+});
+
+ 
 
 
 app.listen(port, () => {
