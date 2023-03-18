@@ -1,36 +1,64 @@
-const express = require('express');
-const app = express()
-const port = 3000
-var current_duty = 0;
-app.use(express.json());
+const { json } = require('express');
 
-app.get('/', (req, res) => {
-  res.send("this is server root bitch")
+const server = require('http').createServer()
+const io = require('socket.io')(server)
+
+var duty = .1;
+
+
+//for nodemcu
+const nodemcuNamespace = io.of('/nodemcu');
+nodemcuNamespace.on('connection', (nodemcu) => {
+  // handle chat events
+  console.log('nodemcu connected...', nodemcu.id);
+  // nodemcu.send("2");
+  nodemcu.join('nodemcuRoom');
+  // nodemcu.emit(1);
+
+
+
 });
-app.get('/analytics', (req, res)=>{
-     res.json({
-         "voltage":19,
-         "current":17,
-         "reporting_time":"17 7 2022 IST"
-  });
+
+io.on('connection', function (client) {
+
+  console.log('client connect...', client.id);
+
+ 
+
+  client.on('message', function name(data) {
+    // Convert data.message to an integer using parseInt()
+    client.emit("hello")
+
+    // client.send("2")
+    console.log("message from phone: "+data.message)
+    client.emit("message", data.message)
+   
+
+
     
-});
+    // Emit the integer value of data.message to the "nodemcuRoom" namespace
+    // nodemcuNamespace.to("nodemcuRoom").emit("message",data.message );
+  })
 
 
+  client.on('disconnect', function () {
+    console.log('client disconnect...', client.id)
+    // handleDisconnect()
+  })
 
-app.get('/get_duty', (req, res)=>{
-  res.send(current_duty.toString());
- 
-});
-
-app.post('/update_duty',function (req, res){
-  current_duty = req.body.duty;
-  console.log(current_duty);
-});
-
- 
-
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  client.on('error', function (err) {
+    console.log('received error from client:', client.id)
+    console.log(err)
+  })
 })
+
+
+
+var server_port = process.env.PORT || 443;
+server.listen(server_port, function (err) {
+  if (err) throw err
+  console.log('Listening on port %d', server_port);
+});
+
+
+
