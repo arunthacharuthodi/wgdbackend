@@ -1,36 +1,23 @@
-const express = require('express');
-const app = express()
-const port = 3000
-var current_duty = 0;
-app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send("this is server root bitch")
-});
-app.get('/analytics', (req, res)=>{
-     res.json({
-         "voltage":19,
-         "current":17,
-         "reporting_time":"17 7 2022 IST"
-  });
-    
+var PORT = process.env.PORT || 3000;
+var express = require('express');
+var app = express();
+var http = require('http');
+var server = http.Server(app);
+var duty = 0;
+app.get('/', (req,res)=>{
+  res.send(`<h5>welcome to wireless gate drive server</h5><br>current duty cycle:${duty} `)
 });
 
-
-
-app.get('/get_duty', (req, res)=>{
-  res.send(current_duty.toString());
- 
+server.listen(PORT, function(){
+  console.log('listening sever on *:'+ PORT);
 });
 
-app.post('/update_duty',function (req, res){
-  current_duty = req.body.duty;
-  console.log(current_duty);
+var io = require('socket.io')(server);
+io.on('connect', function(socket){
+  console.log('a user connected :'+socket.id);
+  socket.on('message', function (data) {
+    console.log(data);
+    duty = data.message;
+    io.emit('message', data.message);
 });
-
- 
-
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
 })
